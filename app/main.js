@@ -1,33 +1,36 @@
-// main.js — satu pekerjaan: router hash dan judul halaman.
-import { ROUTES, MOUNTS } from './views.js';
+// main.js — router hash + navigasi. Delapan rute, semua dari data.js.
+import { viewHome, viewPenduduk, viewEkonomi, viewPerdagangan, viewHarga, viewTenagaKerja, viewManusia, viewData } from './views.js';
 
-const view = document.getElementById('view');
-const navLinks = [...document.querySelectorAll('.site-nav a')];
+const ROUTES = [
+  ['#/', 'Beranda', viewHome],
+  ['#/penduduk', 'Penduduk', viewPenduduk],
+  ['#/ekonomi', 'Ekonomi', viewEkonomi],
+  ['#/perdagangan', 'Perdagangan', viewPerdagangan],
+  ['#/harga', 'Harga', viewHarga],
+  ['#/tenaga-kerja', 'Tenaga Kerja', viewTenagaKerja],
+  ['#/manusia', 'Manusia', viewManusia],
+  ['#/data', 'Data', viewData],
+];
 
-function currentRoute() {
-  const hash = window.location.hash.replace(/^#/, '') || '/';
-  return ROUTES[hash] ? hash : '/';
+const app = document.getElementById('app');
+const nav = document.getElementById('nav');
+
+for (const [hash, label] of ROUTES) {
+  const a = document.createElement('a');
+  a.href = hash;
+  a.textContent = label;
+  a.dataset.route = hash;
+  nav.appendChild(a);
 }
 
 function render() {
-  const route = currentRoute();
-  const page = ROUTES[route];
-  view.innerHTML = page.html();
-  document.title = `${page.title} · DataNusa — Statistik Indonesia`;
-  navLinks.forEach((a) => {
-    const target = a.getAttribute('href').replace(/^#/, '');
-    a.classList.toggle('current', target === route);
-    if (target === route) a.setAttribute('aria-current', 'page');
-    else a.removeAttribute('aria-current');
-  });
-  const mount = MOUNTS[route];
-  if (mount) requestAnimationFrame(() => mount());
+  const hash = location.hash || '#/';
+  const route = ROUTES.find(([h]) => h === hash) || ROUTES[0];
+  nav.querySelectorAll('a').forEach((a) => a.classList.toggle('active', a.dataset.route === route[0]));
+  app.replaceChildren(route[2]());
   window.scrollTo(0, 0);
+  document.title = route[1] === 'Beranda' ? 'Indonesia dalam Angka 2026' : `${route[1]} — Indonesia dalam Angka 2026`;
 }
 
 window.addEventListener('hashchange', render);
-window.addEventListener('resize', () => {
-  const mount = MOUNTS[currentRoute()];
-  if (mount) mount();
-});
 render();
